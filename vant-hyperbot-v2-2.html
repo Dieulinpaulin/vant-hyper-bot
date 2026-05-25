@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hyper Dieulyn Bot — Signal Quotex #1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --gold:#FFD700; --gold2:#FFA500; --cyan:#00d4ff; --green:#00ff88; --red:#ff3366; --dark:#030a0f; --dark2:#071520; --border:#0d3a5c; --text:#a0c8e0; }
+    *{margin:0;padding:0;box-sizing:border-box;} html{scroll-behavior:smooth;}
+    body{background:var(--dark);color:var(--text);font-family:'Exo 2',sans-serif;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;z-index:0;
+      background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);
+      background-size:40px 40px;pointer-events:none;}
+    @keyframes shimmer{0%,100%{background-position:0%}50%{background-position:100%}}
+    @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 20px var(--gold)}50%{opacity:.6;box-shadow:0 0 5px var(--gold)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes scan{0%{left:-60%}100%{left:120%}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(255,215,0,.3)}50%{box-shadow:0 0 60px rgba(255,215,0,.8),0 0 100px rgba(255,215,0,.3)}}
+    @keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes countdown{0%{color:#00ff88}50%{color:#ffd700}100%{color:#ff3366}}
+    @keyframes counterpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+    /* LANG SWITCHER */
+    .lang-bar{position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(3,10,15,.95);backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(255,215,0,.15);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;}
+    .lang-btns{display:flex;gap:6px;}
+    .lang-btn{padding:4px 12px;background:transparent;border:1px solid var(--border);color:#3a6a8a;
+      font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;}
+    .lang-btn.active,.lang-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.08);}
+    .lang-logo{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:var(--gold);letter-spacing:3px;}
+
+    /* NAV */
+    nav{position:fixed;top:41px;left:0;right:0;z-index:100;background:rgba(3,10,15,.9);backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(255,215,0,.15);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-cta{background:rgba(255,215,0,.1);border:1px solid var(--gold);color:var(--gold);padding:7px 16px;
+      font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;border-radius:2px;text-decoration:none;transition:all .3s;}
+    .nav-cta:hover{background:rgba(255,215,0,.2);box-shadow:0 0 20px rgba(255,215,0,.3);}
+
+    /* TICKER */
+    .ticker-wrap{overflow:hidden;padding:9px 0;background:rgba(255,215,0,.06);border-top:1px solid rgba(255,215,0,.2);border-bottom:1px solid rgba(255,215,0,.2);position:relative;z-index:1;}
+    .ticker{display:flex;gap:60px;white-space:nowrap;animation:ticker 20s linear infinite;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:2px;}
+    .ticker span{color:var(--green);}
+
+    /* PROMO COUNTDOWN */
+    .promo-bar{background:linear-gradient(135deg,rgba(255,51,102,.15),rgba(255,51,102,.05));
+      border:1px solid rgba(255,51,102,.3);border-radius:4px;padding:14px 20px;margin:20px auto;
+      max-width:700px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:relative;z-index:1;}
+    .promo-label{font-family:'Orbitron',monospace;font-size:12px;color:#ff6b6b;letter-spacing:2px;}
+    .countdown-wrap{display:flex;gap:12px;align-items:center;}
+    .countdown-unit{text-align:center;}
+    .countdown-num{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:var(--gold);display:block;animation:counterpulse 1s infinite;}
+    .countdown-lbl{font-size:9px;letter-spacing:2px;color:#3a6a8a;}
+    .countdown-sep{font-family:'Orbitron',monospace;font-size:1.2rem;color:var(--gold);animation:blink 1s infinite;}
+
+    /* HERO */
+    .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:120px 20px 60px;text-align:center;position:relative;z-index:1;}
+    .bot-logo{width:110px;height:110px;margin:0 auto 26px;animation:float 4s ease-in-out infinite;}
+    .bot-logo svg{width:100%;height:100%;filter:drop-shadow(0 0 20px var(--gold));}
+    .live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,255,136,.1);border:1px solid var(--green);
+      padding:5px 14px;border-radius:20px;margin-bottom:18px;font-size:11px;letter-spacing:3px;color:var(--green);font-family:'Share Tech Mono',monospace;}
+    .live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1s infinite;}
+    .hero-title{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(1.8rem,6vw,3.2rem);letter-spacing:4px;line-height:1.1;
+      background:linear-gradient(135deg,var(--gold),var(--gold2),#fff,var(--gold));background-size:300%;
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s infinite;margin-bottom:8px;}
+    .hero-sub{font-family:'Orbitron',monospace;font-size:clamp(.65rem,2vw,.9rem);letter-spacing:6px;color:var(--cyan);margin-bottom:20px;}
+    .hero-desc{font-size:1rem;color:var(--text);max-width:580px;line-height:1.8;margin:0 auto 30px;font-weight:300;}
+    .hero-desc strong{color:#fff;font-weight:600;}
+    .cta-main{display:inline-block;padding:16px 40px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:#000;font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:3px;
+      border:none;cursor:pointer;border-radius:3px;text-decoration:none;transition:all .3s;animation:glow 2s infinite;margin-bottom:12px;}
+    .cta-main:hover{transform:scale(1.04);}
+    .hero-price-hint{font-size:13px;color:#3a6a8a;letter-spacing:2px;}
+    .hero-price-hint strong{color:var(--gold);font-size:15px;}
+
+    /* LIVE COUNTER */
+    .live-counter{display:inline-flex;align-items:center;gap:8px;background:rgba(0,255,136,.08);
+      border:1px solid rgba(0,255,136,.3);padding:8px 18px;border-radius:20px;margin-top:16px;
+      font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--green);}
+    .counter-num{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;animation:counterpulse 2s infinite;}
+
+    /* STATS BAR */
+    .stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--border);
+      border:1px solid var(--border);margin:40px auto 0;max-width:800px;position:relative;z-index:1;}
+    .stat-item{background:var(--dark2);padding:18px 14px;text-align:center;}
+    .stat-num{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;color:var(--gold);display:block;margin-bottom:3px;}
+    .stat-label{font-size:9px;letter-spacing:3px;color:#3a6a8a;text-transform:uppercase;}
+
+    /* SECTIONS */
+    section{position:relative;z-index:1;}
+    .section-title{font-family:'Orbitron',monospace;font-size:clamp(.95rem,3vw,1.4rem);font-weight:900;letter-spacing:4px;text-align:center;color:#fff;margin-bottom:6px;}
+    .section-sub{text-align:center;color:#3a6a8a;font-size:10px;letter-spacing:4px;margin-bottom:44px;font-family:'Share Tech Mono',monospace;}
+    .section-line{width:80px;height:2px;margin:10px auto 14px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+
+    /* FEATURES */
+    .features{padding:70px 20px;}
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;max-width:1000px;margin:0 auto;}
+    .feat-card{background:var(--dark2);border:1px solid var(--border);border-top:3px solid var(--gold);padding:26px 22px;border-radius:2px;transition:all .3s;position:relative;overflow:hidden;}
+    .feat-card::before{content:'';position:absolute;top:0;left:-60%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,215,0,.04),transparent);animation:scan 4s infinite;}
+    .feat-card:hover{border-color:var(--gold);box-shadow:0 0 30px rgba(255,215,0,.1);transform:translateY(-4px);}
+    .feat-icon{font-size:2rem;margin-bottom:12px;}
+    .feat-title{font-family:'Orbitron',monospace;font-size:12px;color:#fff;letter-spacing:2px;margin-bottom:8px;}
+    .feat-desc{font-size:13px;line-height:1.8;color:var(--text);}
+
+    /* PRICING */
+    .pricing{padding:70px 20px;}
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:900px;margin:0 auto;}
+    .price-card{background:var(--dark2);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:all .3s;position:relative;}
+    .price-card:hover{transform:translateY(-4px);box-shadow:0 8px 40px rgba(255,215,0,.12);}
+    .price-card.featured{border:2px solid var(--gold);box-shadow:0 0 40px rgba(255,215,0,.15);animation:glow 3s infinite;}
+    .price-badge-top{background:var(--gold);color:#000;font-family:'Orbitron',monospace;font-size:9px;font-weight:900;letter-spacing:3px;padding:4px 14px;text-align:center;}
+    .price-header{padding:24px 24px 18px;text-align:center;border-bottom:1px solid var(--border);}
+    .price-name{font-family:'Orbitron',monospace;font-size:11px;color:#fff;letter-spacing:3px;margin-bottom:12px;}
+    .price-amount{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;color:var(--gold);line-height:1;}
+    .price-period{font-size:11px;color:#3a6a8a;letter-spacing:2px;margin-top:4px;}
+    .price-orig{font-size:12px;color:#ff3366;text-decoration:line-through;margin-top:4px;}
+    .price-features{padding:20px 24px;}
+    .price-feat{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,215,0,.06);font-size:12px;color:var(--text);}
+    .price-feat:last-child{border:none;}
+    .price-feat-icon{color:var(--green);font-size:14px;min-width:18px;}
+    .price-cta-wrap{padding:0 24px 24px;}
+    .btn-buy{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;
+      font-family:'Orbitron',monospace;font-weight:900;font-size:12px;letter-spacing:3px;border:none;cursor:pointer;border-radius:3px;text-align:center;transition:all .3s;text-decoration:none;}
+    .btn-buy:hover{transform:scale(1.02);box-shadow:0 8px 30px rgba(255,215,0,.4);}
+    .btn-buy-outline{background:transparent;border:2px solid var(--gold);color:var(--gold);}
+    .btn-buy-outline:hover{background:rgba(255,215,0,.1);}
+
+    /* PAYMENT */
+    .payment{padding:70px 20px;background:rgba(0,212,255,.015);}
+    .payment-tabs{display:flex;gap:8px;margin-bottom:24px;justify-content:center;flex-wrap:wrap;}
+    .pay-tab{padding:8px 20px;background:transparent;border:1px solid var(--border);color:#3a6a8a;
+      font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .2s;}
+    .pay-tab.active{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.08);}
+    .pay-content{max-width:600px;margin:0 auto;display:none;}
+    .pay-content.active{display:block;}
+    .pay-card{background:var(--dark2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+    .pay-header{background:rgba(255,215,0,.06);border-bottom:1px solid var(--border);padding:18px 24px;}
+    .pay-title{font-family:'Orbitron',monospace;font-size:12px;color:var(--gold);letter-spacing:3px;margin-bottom:4px;}
+    .pay-desc{font-size:13px;color:var(--text);line-height:1.7;}
+    .pay-body{padding:24px;}
+    .pay-step{display:flex;gap:14px;margin-bottom:18px;align-items:flex-start;}
+    .pay-step-num{background:var(--gold);color:#000;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;flex-shrink:0;}
+    .pay-step-text{font-size:13px;line-height:1.7;color:var(--text);padding-top:3px;}
+    .pay-step-text strong{color:#fff;}
+    .info-box{background:rgba(255,215,0,.06);border:2px solid var(--gold);border-radius:3px;padding:14px 18px;text-align:center;margin:16px 0;}
+    .info-num{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:var(--gold);letter-spacing:4px;}
+    .info-label{font-size:10px;color:#3a6a8a;letter-spacing:3px;margin-top:3px;}
+    .trc20-addr{background:#030a0f;border:1px solid var(--border);padding:10px 14px;border-radius:3px;
+      font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);word-break:break-all;text-align:center;margin:10px 0;}
+    .qr-placeholder{width:180px;height:180px;background:var(--dark2);border:2px dashed var(--border);
+      border-radius:4px;margin:12px auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+
+    /* UPLOAD FORM */
+    .upload-section{padding:20px 24px;}
+    .form-label{font-size:10px;letter-spacing:3px;color:#3a6a8a;margin-bottom:6px;display:block;font-family:'Share Tech Mono',monospace;}
+    .form-input{width:100%;background:var(--dark);border:1px solid var(--border);color:#fff;padding:10px 12px;
+      font-family:'Exo 2',sans-serif;font-size:13px;outline:none;border-radius:2px;margin-bottom:12px;box-sizing:border-box;transition:border-color .3s;}
+    .form-input:focus{border-color:var(--gold);}
+    .form-input::placeholder{color:#3a6a8a;}
+    .upload-zone{border:2px dashed var(--border);border-radius:3px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:12px;}
+    .upload-zone:hover{border-color:var(--gold);background:rgba(255,215,0,.03);}
+    .upload-icon{font-size:1.8rem;margin-bottom:6px;}
+    .upload-text{font-size:13px;color:var(--text);}
+    #preview-img{max-width:100%;max-height:180px;border-radius:3px;margin-top:8px;display:none;}
+    .btn-send{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;
+      font-family:'Orbitron',monospace;font-weight:900;font-size:12px;letter-spacing:3px;border:none;cursor:pointer;border-radius:2px;transition:all .3s;}
+    .btn-send:hover{transform:scale(1.02);}
+    .btn-send:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    #send-status{margin-top:10px;padding:10px;border-radius:3px;font-size:12px;display:none;text-align:center;}
+    .status-ok{background:rgba(0,255,136,.1);border:1px solid var(--green);color:var(--green);}
+    .status-err{background:rgba(255,51,102,.1);border:1px solid var(--red);color:var(--red);}
+
+    /* TESTIMONIALS */
+    .testimonials{padding:70px 20px;}
+    .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;max-width:900px;margin:0 auto;}
+    .testi-card{background:var(--dark2);border:1px solid var(--border);border-radius:3px;padding:22px;position:relative;transition:all .3s;}
+    .testi-card:hover{border-color:rgba(255,215,0,.3);transform:translateY(-3px);}
+    .testi-card::before{content:'"';font-size:4rem;color:rgba(255,215,0,.08);position:absolute;top:8px;right:14px;font-family:serif;line-height:1;}
+    .testi-stars{color:var(--gold);font-size:13px;margin-bottom:10px;}
+    .testi-text{font-size:13px;line-height:1.8;color:var(--text);margin-bottom:14px;font-style:italic;}
+    .testi-name{font-family:'Orbitron',monospace;font-size:10px;color:#fff;letter-spacing:2px;}
+    .testi-loc{font-size:11px;color:#3a6a8a;}
+    .testi-flag{font-size:16px;margin-right:4px;}
+
+    /* SECURITY BADGES */
+    .security{padding:50px 20px;background:rgba(0,212,255,.015);}
+    .badges-grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:800px;margin:0 auto;}
+    .badge-item{display:flex;align-items:center;gap:8px;background:var(--dark2);border:1px solid var(--border);
+      padding:10px 18px;border-radius:3px;font-size:12px;color:var(--text);}
+    .badge-icon{font-size:18px;}
+
+    /* FAQ */
+    .faq{padding:70px 20px;}
+    .faq-list{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+    .faq-item{background:var(--dark2);border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+    .faq-q{padding:16px 18px;font-size:13px;color:#fff;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s;}
+    .faq-q:hover{background:rgba(255,215,0,.04);}
+    .faq-arrow{color:var(--gold);font-size:16px;transition:transform .3s;}
+    .faq-a{padding:0 18px;font-size:12px;line-height:1.8;color:var(--text);max-height:0;overflow:hidden;transition:all .3s;}
+    .faq-item.open .faq-a{padding:0 18px 14px;max-height:200px;}
+    .faq-item.open .faq-arrow{transform:rotate(45deg);}
+
+    /* FOOTER */
+    footer{background:var(--dark2);border-top:1px solid var(--border);padding:36px 20px;text-align:center;position:relative;z-index:1;}
+    .footer-logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--gold);letter-spacing:4px;margin-bottom:10px;}
+    .footer-text{font-size:12px;color:#3a6a8a;line-height:1.8;}
+    .footer-warning{max-width:580px;margin:16px auto 0;padding:10px 14px;background:rgba(255,51,102,.06);border:1px solid rgba(255,51,102,.2);border-radius:3px;font-size:10px;color:#ff6b6b;line-height:1.7;}
+
+    /* WHATSAPP FLOAT */
+    .wa-float{position:fixed;bottom:24px;right:24px;z-index:200;background:#25D366;color:#fff;
+      width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:26px;text-decoration:none;box-shadow:0 4px 20px rgba(37,211,102,.5);transition:all .3s;animation:float 3s ease-in-out infinite;}
+    .wa-float:hover{transform:scale(1.1);}
+
+    /* HIDDEN LANG CONTENT */
+    [data-lang]{display:none;}
+    [data-lang].active{display:block;}
+    [data-lang-inline]{display:none;}
+    [data-lang-inline].active{display:inline;}
+
+    ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--dark);} ::-webkit-scrollbar-thumb{background:var(--border);}
+    @media(max-width:600px){.hero{padding:110px 16px 50px;}.pay-step{flex-direction:column;gap:8px;}}
+  </style>
+</head>
+<body>
+
+<!-- LANG SWITCHER -->
+<div class="lang-bar">
+  <div class="lang-logo">⚡ HYPERBOT</div>
+  <div class="lang-btns">
+    <button class="lang-btn active" onclick="setLang('fr')">🇫🇷 FR</button>
+    <button class="lang-btn" onclick="setLang('ht')">🇭🇹 HT</button>
+    <button class="lang-btn" onclick="setLang('en')">🇺🇸 EN</button>
+    <button class="lang-btn" onclick="setLang('es')">🇪🇸 ES</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav style="top:41px;">
+  <div style="font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:var(--gold);letter-spacing:3px;">⚡ HYPER DIEULYN BOT</div>
+  <a href="#payment" class="nav-cta" id="nav-cta-text">S'ABONNER</a>
+</nav>
+
+<!-- TICKER -->
+<div style="margin-top:82px;" class="ticker-wrap">
+  <div class="ticker">
+    <span>⬆ EUR/USD UP 87%</span> · <span>⬇ GBP/JPY DOWN 92%</span> · <span>⬆ XAU/USD UP 78%</span> · <span>⬇ BTC/USD DOWN 85%</span> · <span>⬆ US100 UP 91%</span> · <span>⬇ ETH/USD DOWN 83%</span> · <span>⬆ USD/CHF UP 88%</span>
+  </div>
+</div>
+
+<!-- PROMO COUNTDOWN -->
+<div style="padding:0 20px;position:relative;z-index:1;">
+  <div class="promo-bar">
+    <div>
+      <div class="promo-label" id="promo-label">🔥 OFFRE SPÉCIALE — PRIX RÉDUIT!</div>
+      <div style="font-size:11px;color:#3a6a8a;margin-top:3px;" id="promo-sub">Profitez de notre offre de lancement!</div>
+    </div>
+    <div class="countdown-wrap">
+      <div class="countdown-unit"><span class="countdown-num" id="cd-h">47</span><span class="countdown-lbl" id="cd-h-lbl">HÈ</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-m">59</span><span class="countdown-lbl" id="cd-m-lbl">MIN</span></div>
+      <span class="countdown-sep">:</span>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-s">59</span><span class="countdown-lbl" id="cd-s-lbl">SEG</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="bot-logo">
+    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="55" stroke="#FFD700" stroke-width="2" opacity=".3"/>
+      <circle cx="60" cy="60" r="42" stroke="#FFD700" stroke-width="1.5" opacity=".5"/>
+      <rect x="28" y="35" width="64" height="50" rx="8" fill="#071520" stroke="#FFD700" stroke-width="2"/>
+      <rect x="38" y="48" width="16" height="12" rx="3" fill="#00d4ff" opacity=".9"/>
+      <rect x="66" y="48" width="16" height="12" rx="3" fill="#00d4ff" opacity=".9"/>
+      <rect x="43" y="52" width="6" height="4" rx="1" fill="#fff"/>
+      <rect x="71" y="52" width="6" height="4" rx="1" fill="#fff"/>
+      <rect x="42" y="68" width="36" height="6" rx="3" fill="#FFD700" opacity=".8"/>
+      <line x1="60" y1="35" x2="60" y2="18" stroke="#FFD700" stroke-width="2"/>
+      <circle cx="60" cy="15" r="5" fill="#FFD700"/>
+      <path d="M20 60 Q15 50 20 40" stroke="#00ff88" stroke-width="1.5" fill="none" opacity=".6"/>
+      <path d="M14 63 Q7 48 14 33" stroke="#00ff88" stroke-width="1.5" fill="none" opacity=".4"/>
+      <path d="M100 60 Q105 50 100 40" stroke="#00ff88" stroke-width="1.5" fill="none" opacity=".6"/>
+      <path d="M106 63 Q113 48 106 33" stroke="#00ff88" stroke-width="1.5" fill="none" opacity=".4"/>
+    </svg>
+  </div>
+
+  <div class="live-badge"><span class="live-dot"></span> <span id="badge-text">BOT ACTIF — SIGNAUX EN TEMPS RÉEL</span></div>
+  <h1 class="hero-title">HYPER DIEULYN BOT</h1>
+  <div class="hero-sub" id="hero-sub">QUOTEX AI SIGNAL BOT · BINARY OPTIONS</div>
+  <p class="hero-desc" id="hero-desc">Bot AI qui <strong>analyse vos graphiques</strong> et vous donne des <strong>signaux pour la prochaine bougie</strong> — UP ou DOWN — avec une haute précision. Prenez vos meilleures décisions trading.</p>
+  <a href="#payment" class="cta-main" id="hero-cta">⚡ COMMENCER MAINTENANT</a>
+  <div class="hero-price-hint" id="hero-price-hint">Abonnement: <strong>3,000 HTG/mois</strong> · NatCash · MerU · TRC20 · Accès immédiat</div>
+
+  <!-- LIVE COUNTER -->
+  <div class="live-counter">
+    <span class="live-dot"></span>
+    <span class="counter-num" id="live-count">247</span>
+    <span id="live-count-text">traders actifs en ce moment</span>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num">95%</span><span class="stat-label" id="stat1">Précision moy.</span></div>
+    <div class="stat-item"><span class="stat-num">24/7</span><span class="stat-label" id="stat2">Disponible</span></div>
+    <div class="stat-item"><span class="stat-num">+500</span><span class="stat-label" id="stat3">Traders actifs</span></div>
+    <div class="stat-item"><span class="stat-num">5s</span><span class="stat-label" id="stat4">Pour un signal</span></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <h2 class="section-title" id="feat-title">CE QUE LE BOT FAIT POUR VOUS</h2>
+  <div class="section-line"></div>
+  <p class="section-sub">// FONCTIONS PRINCIPALES</p>
+  <div class="features-grid">
+    <div class="feat-card"><div class="feat-icon">📸</div><div class="feat-title" id="f1t">ANALYSE SCREENSHOT LIVE</div><div class="feat-desc" id="f1d">Envoyez un screenshot de votre graphique Quotex — l'AI l'analyse en 5 secondes et vous donne un signal pour la prochaine bougie.</div></div>
+    <div class="feat-card"><div class="feat-icon">⬆⬇</div><div class="feat-title" id="f2t">SIGNAUX UP / DOWN CLAIRS</div><div class="feat-desc" id="f2d">Chaque signal indique la direction (UP ou DOWN), le pourcentage de confiance, le moment d'entrée et l'expiration.</div></div>
+    <div class="feat-card"><div class="feat-icon">⏱</div><div class="feat-title" id="f3t">COMPTE À REBOURS AUTO</div><div class="feat-desc" id="f3d">Après chaque signal, un compte à rebours démarre. Alertes sonores à 30s et 10s pour ne pas rater le moment d'entrée.</div></div>
+    <div class="feat-card"><div class="feat-icon">📈</div><div class="feat-title" id="f4t">HISTORIQUE & STATISTIQUES</div><div class="feat-desc" id="f4d">Enregistrez vos WIN/LOSS, consultez votre taux de victoire, profil de performance et évolution de capital.</div></div>
+    <div class="feat-card"><div class="feat-icon">💰</div><div class="feat-title" id="f5t">GESTION DE CAPITAL</div><div class="feat-desc" id="f5d">Calculateur de mise automatique selon votre capital et votre % de risque. Option Martingale intégrée.</div></div>
+    <div class="feat-card"><div class="feat-icon">💬</div><div class="feat-title" id="f6t">ASSISTANT AI CRÉOLE/FR</div><div class="feat-desc" id="f6d">Chatbot qui parle Créole et Français. Posez n'importe quelle question sur le trading — réponse immédiate.</div></div>
+    <div class="feat-card"><div class="feat-icon">🎨</div><div class="feat-title" id="f7t">3 THÈMES + SON PERSONNALISÉ</div><div class="feat-desc" id="f7d">Choisissez votre thème (Dark Blue, Dark Green, Black & Gold), ajustez le volume et le type de son d'alerte.</div></div>
+    <div class="feat-card"><div class="feat-icon">🌐</div><div class="feat-title" id="f8t">30+ PAIRES DE DEVISES</div><div class="feat-desc" id="f8d">Forex Major, Minor, Crypto, Matières Premières, Indices — toutes les paires disponibles sur Quotex.</div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing" style="background:rgba(0,212,255,.015);">
+  <h2 class="section-title" id="price-title">ABONNEMENTS</h2>
+  <div class="section-line"></div>
+  <p class="section-sub">// CHOISISSEZ VOTRE PLAN</p>
+  <div class="pricing-grid">
+
+    <!-- 1 MOIS -->
+    <div class="price-card">
+      <div class="price-header">
+        <div class="price-name" id="p1name">1 MOIS</div>
+        <div class="price-amount">3,000 <span style="font-size:1rem;">HTG</span></div>
+        <div class="price-period" id="p1period">Par mois · Renouvellement mensuel</div>
+      </div>
+      <div class="price-features">
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf1">Analyses illimitées</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf2">Signaux temps réel</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf3">Assistant AI 24/7</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf4">Gestion de capital</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf5">Accès mobile & PC</span></div>
+      </div>
+      <div class="price-cta-wrap">
+        <a href="#payment" class="btn-buy btn-buy-outline" id="btn-p1">CHOISIR CE PLAN</a>
+      </div>
+    </div>
+
+    <!-- 3 MOIS FEATURED -->
+    <div class="price-card featured">
+      <div class="price-badge-top" id="featured-badge">⭐ MEILLEUR CHOIX</div>
+      <div class="price-header">
+        <div class="price-name" id="p2name">3 MOIS</div>
+        <div class="price-amount">7,500 <span style="font-size:1rem;">HTG</span></div>
+        <div class="price-orig" id="p2orig">Au lieu de 9,000 HTG</div>
+        <div class="price-period" id="p2period">Économisez 1,500 HTG · 17% de réduction</div>
+      </div>
+      <div class="price-features">
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf6">Tout du plan 1 mois</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf7">Support prioritaire</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf8">Mises à jour gratuites</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf9">Groupe WhatsApp VIP</span></div>
+        <div class="price-feat"><span class="price-feat-icon">⭐</span> <span id="pf10">Économie de 1,500 HTG</span></div>
+      </div>
+      <div class="price-cta-wrap">
+        <a href="#payment" class="btn-buy" id="btn-p2">💳 CHOISIR CE PLAN</a>
+      </div>
+    </div>
+
+    <!-- 6 MOIS -->
+    <div class="price-card">
+      <div class="price-header">
+        <div class="price-name" id="p3name">6 MOIS</div>
+        <div class="price-amount">12,000 <span style="font-size:1rem;">HTG</span></div>
+        <div class="price-orig" id="p3orig">Au lieu de 18,000 HTG</div>
+        <div class="price-period" id="p3period">Économisez 6,000 HTG · 33% de réduction</div>
+      </div>
+      <div class="price-features">
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf11">Tout du plan 3 mois</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf12">Accès à vie aux mises à jour</span></div>
+        <div class="price-feat"><span class="price-feat-icon">✅</span> <span id="pf13">Coaching trading 1h</span></div>
+        <div class="price-feat"><span class="price-feat-icon">⭐</span> <span id="pf14">Économie de 6,000 HTG</span></div>
+        <div class="price-feat"><span class="price-feat-icon">🏆</span> <span id="pf15">Meilleur rapport qualité/prix</span></div>
+      </div>
+      <div class="price-cta-wrap">
+        <a href="#payment" class="btn-buy btn-buy-outline" id="btn-p3">CHOISIR CE PLAN</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PAYMENT SECTION -->
+<section class="payment" id="payment">
+  <h2 class="section-title" id="pay-title">💳 COMMENT PAYER</h2>
+  <div class="section-line"></div>
+  <p class="section-sub" id="pay-sub">// CHOISISSEZ VOTRE MÉTHODE DE PAIEMENT</p>
+
+  <div class="payment-tabs">
+    <button class="pay-tab active" onclick="showPayTab('natcash')">📱 NatCash</button>
+    <button class="pay-tab" onclick="showPayTab('meru')">💜 MerU</button>
+    <button class="pay-tab" onclick="showPayTab('trc20')">🌐 TRC20 (USDT)</button>
+  </div>
+
+  <!-- NATCASH -->
+  <div class="pay-content active" id="pay-natcash">
+    <div class="pay-card">
+      <div class="pay-header">
+        <div class="pay-title">📱 PAIEMENT NATCASH</div>
+        <div class="pay-desc" id="natcash-desc">Envoyez le montant via NatCash, puis envoyez une capture d'écran du reçu pour recevoir votre accès en moins d'1 heure.</div>
+      </div>
+      <div class="pay-body">
+        <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text" id="natcash-s1">Ouvrez l'application <strong>NatCash</strong> sur votre téléphone</div></div>
+        <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text" id="natcash-s2">Envoyez votre montant au numéro ci-dessous:</div></div>
+        <div class="info-box">
+          <div class="info-num">3239-9183</div>
+          <div class="info-label">CHARLES DANIECE · NATCASH</div>
+        </div>
+        <div class="pay-step"><div class="pay-step-num">3</div><div class="pay-step-text" id="natcash-s3">Prenez une <strong>capture d'écran du reçu</strong> et remplissez le formulaire ci-dessous</div></div>
+      </div>
+      <!-- UPLOAD FORM -->
+      <div class="upload-section">
+        <label class="form-label" id="form-name-lbl">VOTRE NOM COMPLET</label>
+        <input type="text" id="field-nom" class="form-input" placeholder="Ex: Jean Baptiste Pierre"/>
+        <label class="form-label" id="form-tel-lbl">VOTRE NUMÉRO DE TÉLÉPHONE</label>
+        <input type="tel" id="field-tel" class="form-input" placeholder="Ex: 3712-3456"/>
+        <label class="form-label" id="form-plan-lbl">PLAN CHOISI</label>
+        <select id="field-plan" class="form-input">
+          <option value="1 mois - 3000 HTG">1 Mois — 3,000 HTG</option>
+          <option value="3 mois - 7500 HTG">3 Mois — 7,500 HTG</option>
+          <option value="6 mois - 12000 HTG">6 Mois — 12,000 HTG</option>
+        </select>
+        <label class="form-label" id="form-proof-lbl">CAPTURE D'ÉCRAN DU REÇU</label>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text" id="upload-text">Cliquez pour choisir votre capture d'écran</div>
+          <img id="preview-img" alt="Preview"/>
+        </div>
+        <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFile(this)"/>
+        <button class="btn-send" id="btn-send" onclick="sendPayment()" disabled id="btn-send-text">📤 ENVOYER LA CONFIRMATION</button>
+        <div id="send-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MERU -->
+  <div class="pay-content" id="pay-meru">
+    <div class="pay-card">
+      <div class="pay-header">
+        <div class="pay-title">💜 PAIEMENT MERU</div>
+        <div class="pay-desc" id="meru-desc">Scannez le QR code MerU ci-dessous pour effectuer votre paiement, puis envoyez une capture d'écran du reçu.</div>
+      </div>
+      <div class="pay-body">
+        <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text" id="meru-s1">Ouvrez l'application <strong>MerU</strong> sur votre téléphone</div></div>
+        <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text" id="meru-s2">Scannez le <strong>QR code</strong> ci-dessous</div></div>
+        <!-- MERU QR CODE REEL -->
+        <div style="text-align:center;margin:16px 0;">
+          <div style="display:inline-block;background:#fff;padding:16px;border-radius:12px;border:3px solid #7c3aed;box-shadow:0 0 30px rgba(124,58,237,.3);">
+            <img src="data:image/png;base64,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" alt="QR Code MerU — Charles Daniece" style="width:220px;height:220px;display:block;border-radius:4px;"/>
+          </div>
+          <div style="margin-top:10px;font-family:'Orbitron',monospace;font-size:10px;color:#7c3aed;letter-spacing:3px;">💜 SCAN WITH MERU APP</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label" id="meru-amount-lbl">MONTANT À ENVOYER</div>
+          <div class="info-num" style="margin-top:6px;">3,000 HTG</div>
+          <div class="info-label" style="margin-top:4px;">CHARLES DANIECE</div>
+        </div>
+        <div class="pay-step"><div class="pay-step-num">3</div><div class="pay-step-text" id="meru-s3">Prenez une <strong>capture d'écran</strong> et envoyez-la via WhatsApp: <strong style="color:#fff;">3239-9183</strong></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRC20 -->
+  <div class="pay-content" id="pay-trc20">
+    <div class="pay-card">
+      <div class="pay-header">
+        <div class="pay-title">🌐 PAIEMENT TRC20 (USDT)</div>
+        <div class="pay-desc" id="trc20-desc">Envoyez USDT via le réseau TRC20 (Tron) à l'adresse ci-dessous. Minimum: 3$ USD équivalent.</div>
+      </div>
+      <div class="pay-body">
+        <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text" id="trc20-s1">Ouvrez votre wallet crypto (Binance, Trust Wallet, etc.)</div></div>
+        <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text" id="trc20-s2">Sélectionnez <strong>USDT — Réseau TRC20</strong> (très important!)</div></div>
+        <div class="pay-step"><div class="pay-step-num">3</div><div class="pay-step-text" id="trc20-s3">Envoyez à cette adresse:</div></div>
+        <div class="info-box">
+          <div class="info-label">ADRESSE TRC20 (USDT)</div>
+          <div class="trc20-addr" id="trc20-address" onclick="copyTRC20()">
+            TRC20_ADRESSE_METE_ICI_DIEULYN
+          </div>
+          <button onclick="copyTRC20()" style="margin-top:8px;padding:6px 16px;background:rgba(0,212,255,.1);border:1px solid var(--cyan);color:var(--cyan);font-family:'Orbitron',monospace;font-size:10px;cursor:pointer;border-radius:2px;letter-spacing:2px;" id="copy-btn">📋 COPIER</button>
+        </div>
+        <div style="background:rgba(255,51,102,.06);border:1px solid rgba(255,51,102,.2);border-radius:3px;padding:10px 14px;margin:12px 0;font-size:11px;color:#ff6b6b;line-height:1.7;" id="trc20-warning">
+          ⚠️ <strong>IMPORTANT:</strong> Utilisez UNIQUEMENT le réseau TRC20. Tout envoi sur un autre réseau sera perdu.
+        </div>
+        <div class="pay-step"><div class="pay-step-num">4</div><div class="pay-step-text" id="trc20-s4">Envoyez le <strong>hash de transaction</strong> via WhatsApp: <strong style="color:#fff;">3239-9183</strong></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <h2 class="section-title" id="testi-title">CE QUE DISENT NOS CLIENTS</h2>
+  <div class="section-line"></div>
+  <p class="section-sub">// TÉMOIGNAGES RÉELS</p>
+  <div class="testi-grid">
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text" id="t1">"Ce bot a changé ma façon de trader. Avant je perdais chaque jour, maintenant je fais des profits réguliers. Les signaux sont très précis!"</div>
+      <div class="testi-name"><span class="testi-flag">🇭🇹</span>JEAN ROBERT M.</div>
+      <div class="testi-loc">Port-au-Prince, Haïti</div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text" id="t2">"J'étais sceptique au début, mais après la première semaine j'ai vu la différence. L'AI analyse les graphiques plus vite que moi!"</div>
+      <div class="testi-name"><span class="testi-flag">🇭🇹</span>MARIE C. D.</div>
+      <div class="testi-loc">Cap-Haïtien, Haïti</div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text" id="t3">"Excellent service! Le bot fonctionne parfaitement sur mon téléphone. Je recommande à tous les traders débutants et avancés."</div>
+      <div class="testi-name"><span class="testi-flag">🇭🇹</span>PIERRE A. L.</div>
+      <div class="testi-loc">Pétion-Ville, Haïti</div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text" id="t4">"El bot es increíble. Los señales son muy precisos y el soporte al cliente es excelente. ¡Lo recomiendo!"</div>
+      <div class="testi-name"><span class="testi-flag">🇩🇴</span>CARLOS M.</div>
+      <div class="testi-loc">Santo Domingo, RD</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY BADGES -->
+<section class="security">
+  <h2 class="section-title" id="sec-title">PAIEMENT SÉCURISÉ & GARANTI</h2>
+  <div class="section-line"></div>
+  <div class="badges-grid">
+    <div class="badge-item"><span class="badge-icon">🔒</span><span id="b1">Paiement 100% Sécurisé</span></div>
+    <div class="badge-item"><span class="badge-icon">✅</span><span id="b2">Accès Immédiat</span></div>
+    <div class="badge-item"><span class="badge-icon">🤖</span><span id="b3">AI Claude Sonnet</span></div>
+    <div class="badge-item"><span class="badge-icon">📱</span><span id="b4">Mobile & PC Compatible</span></div>
+    <div class="badge-item"><span class="badge-icon">🔄</span><span id="b5">Mises à Jour Gratuites</span></div>
+    <div class="badge-item"><span class="badge-icon">💬</span><span id="b6">Support WhatsApp 24/7</span></div>
+    <div class="badge-item"><span class="badge-icon">⚡</span><span id="b7">Signaux en 5 Secondes</span></div>
+    <div class="badge-item"><span class="badge-icon">🌍</span><span id="b8">4 Langues Disponibles</span></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" style="background:rgba(0,212,255,.015);">
+  <h2 class="section-title" id="faq-title">QUESTIONS FRÉQUENTES</h2>
+  <div class="section-line"></div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span id="fq1">Comment recevoir mon accès après le paiement?</span><span class="faq-arrow">+</span></div>
+      <div class="faq-a" id="fa1">Après confirmation de votre paiement, vous recevez votre code d'accès via WhatsApp en moins d'1 heure.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span id="fq2">Le bot garantit-il des profits?</span><span class="faq-arrow">+</span></div>
+      <div class="faq-a" id="fa2">Le bot fournit des signaux AI basés sur l'analyse technique. Il ne garantit pas 100% de profits — le trading comporte toujours des risques.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span id="fq3">Fonctionne-t-il sur tous les téléphones?</span><span class="faq-arrow">+</span></div>
+      <div class="faq-a" id="fa3">Oui — le bot fonctionne sur tous les téléphones Android et iPhone via Chrome, ainsi que sur ordinateur.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span id="fq4">Comment renouveler mon abonnement?</span><span class="faq-arrow">+</span></div>
+      <div class="faq-a" id="fa4">Avant l'expiration de votre code, effectuez un nouveau paiement et envoyez la capture d'écran via WhatsApp. Votre accès sera renouvelé immédiatement.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)"><span id="fq5">Puis-je utiliser USDT pour payer?</span><span class="faq-arrow">+</span></div>
+      <div class="faq-a" id="fa5">Oui! Nous acceptons USDT via TRC20 (réseau Tron). Envoyez votre transaction et contactez-nous via WhatsApp avec le hash.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">⚡ HYPER DIEULYN BOT QUOTEX</div>
+  <div class="footer-text">Bot AI pour Binary Options Quotex · Signaux en Temps Réel<br/>Contact: WhatsApp <strong style="color:#fff;">3239-9183</strong></div>
+  <div class="footer-warning" id="footer-warning">⚠️ Le trading de binary options comporte des risques de perte de capital. Hyper Dieulyn Bot est un outil d'assistance — il ne garantit pas des profits. N'investissez jamais plus que ce que vous pouvez vous permettre de perdre.</div>
+</footer>
+
+<!-- WHATSAPP FLOAT -->
+<a href="https://wa.me/50932399183" target="_blank" class="wa-float" title="Contactez-nous sur WhatsApp">💬</a>
+
+<script>
+// ===== LANGUAGE SYSTEM =====
+const LANGS = {
+  fr: {
+    navCta:"S'ABONNER", badgeText:"BOT ACTIF — SIGNAUX EN TEMPS RÉEL", heroSub:"QUOTEX AI SIGNAL BOT · BINARY OPTIONS",
+    heroDesc:"Bot AI qui <strong>analyse vos graphiques</strong> et vous donne des <strong>signaux pour la prochaine bougie</strong> — UP ou DOWN — avec une haute précision.",
+    heroCta:"⚡ COMMENCER MAINTENANT", heroPriceHint:"Abonnement: <strong>3,000 HTG/mois</strong> · NatCash · MerU · TRC20 · Accès immédiat",
+    liveCountText:"traders actifs en ce moment", stat1:"Précision moy.", stat2:"Disponible", stat3:"Traders actifs", stat4:"Pour un signal",
+    featTitle:"CE QUE LE BOT FAIT POUR VOUS",
+    f1t:"ANALYSE SCREENSHOT LIVE", f1d:"Envoyez un screenshot de votre graphique Quotex — l'AI l'analyse en 5 secondes et vous donne un signal pour la prochaine bougie.",
+    f2t:"SIGNAUX UP / DOWN CLAIRS", f2d:"Chaque signal indique la direction (UP ou DOWN), le pourcentage de confiance, le moment d'entrée et l'expiration.",
+    f3t:"COMPTE À REBOURS AUTO", f3d:"Après chaque signal, un compte à rebours démarre. Alertes sonores à 30s et 10s pour ne pas rater l'entrée.",
+    f4t:"HISTORIQUE & STATISTIQUES", f4d:"Enregistrez vos WIN/LOSS, consultez votre taux de victoire et évolution de capital.",
+    f5t:"GESTION DE CAPITAL", f5d:"Calculateur de mise automatique selon votre capital et % de risque. Option Martingale intégrée.",
+    f6t:"ASSISTANT AI CRÉOLE/FR", f6d:"Chatbot qui parle Créole et Français. Posez n'importe quelle question sur le trading.",
+    f7t:"3 THÈMES + SON PERSONNALISÉ", f7d:"Choisissez votre thème, ajustez le volume et le type de son d'alerte.",
+    f8t:"30+ PAIRES DE DEVISES", f8d:"Forex, Crypto, Matières Premières, Indices — toutes les paires Quotex disponibles.",
+    priceTitle:"ABONNEMENTS", promoLabel:"🔥 OFFRE SPÉCIALE — PRIX RÉDUIT!", promoSub:"Profitez de notre offre de lancement!",
+    p1name:"1 MOIS", p1period:"Par mois · Renouvellement mensuel",
+    p2name:"3 MOIS", p2orig:"Au lieu de 9,000 HTG", p2period:"Économisez 1,500 HTG · 17% de réduction", featuredBadge:"⭐ MEILLEUR CHOIX",
+    p3name:"6 MOIS", p3orig:"Au lieu de 18,000 HTG", p3period:"Économisez 6,000 HTG · 33% de réduction",
+    pf1:"Analyses illimitées", pf2:"Signaux temps réel", pf3:"Assistant AI 24/7", pf4:"Gestion de capital", pf5:"Accès mobile & PC",
+    pf6:"Tout du plan 1 mois", pf7:"Support prioritaire", pf8:"Mises à jour gratuites", pf9:"Groupe WhatsApp VIP", pf10:"Économie de 1,500 HTG",
+    pf11:"Tout du plan 3 mois", pf12:"Accès à vie aux mises à jour", pf13:"Coaching trading 1h", pf14:"Économie de 6,000 HTG", pf15:"Meilleur rapport qualité/prix",
+    btnP1:"CHOISIR CE PLAN", btnP2:"💳 CHOISIR CE PLAN", btnP3:"CHOISIR CE PLAN",
+    payTitle:"💳 COMMENT PAYER", paySub:"// CHOISISSEZ VOTRE MÉTHODE DE PAIEMENT",
+    natcashDesc:"Envoyez le montant via NatCash, puis envoyez une capture d'écran du reçu pour recevoir votre accès en moins d'1 heure.",
+    natcashS1:"Ouvrez l'application <strong>NatCash</strong> sur votre téléphone",
+    natcashS2:"Envoyez votre montant au numéro ci-dessous:",
+    natcashS3:"Prenez une <strong>capture d'écran du reçu</strong> et remplissez le formulaire ci-dessous",
+    meruDesc:"Scannez le QR code MerU ci-dessous pour effectuer votre paiement.",
+    meruS1:"Ouvrez l'application <strong>MerU</strong> sur votre téléphone",
+    meruS2:"Scannez le <strong>QR code</strong> ci-dessous",
+    meruS3:"Prenez une <strong>capture d'écran</strong> et envoyez-la via WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Desc:"Envoyez USDT via le réseau TRC20 (Tron). Minimum: 3$ USD.",
+    trc20S1:"Ouvrez votre wallet crypto (Binance, Trust Wallet, etc.)",
+    trc20S2:"Sélectionnez <strong>USDT — Réseau TRC20</strong>",
+    trc20S3:"Envoyez à cette adresse:",
+    trc20S4:"Envoyez le <strong>hash de transaction</strong> via WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Warning:"⚠️ <strong>IMPORTANT:</strong> Utilisez UNIQUEMENT le réseau TRC20. Tout envoi sur un autre réseau sera perdu.",
+    formNameLbl:"VOTRE NOM COMPLET", formTelLbl:"VOTRE NUMÉRO DE TÉLÉPHONE", formPlanLbl:"PLAN CHOISI", formProofLbl:"CAPTURE D'ÉCRAN DU REÇU",
+    uploadText:"Cliquez pour choisir votre capture d'écran", btnSend:"📤 ENVOYER LA CONFIRMATION",
+    testiTitle:"CE QUE DISENT NOS CLIENTS",
+    t1:'"Ce bot a changé ma façon de trader. Les signaux sont très précis!"',
+    t2:'"J\'étais sceptique au début, mais après une semaine j\'ai vu la différence!"',
+    t3:'"Excellent service! Le bot fonctionne parfaitement sur mon téléphone."',
+    t4:'"El bot es increíble. Los señales son muy precisos. ¡Lo recomiendo!"',
+    secTitle:"PAIEMENT SÉCURISÉ & GARANTI",
+    b1:"Paiement 100% Sécurisé", b2:"Accès Immédiat", b3:"AI Claude Sonnet", b4:"Mobile & PC Compatible",
+    b5:"Mises à Jour Gratuites", b6:"Support WhatsApp 24/7", b7:"Signaux en 5 Secondes", b8:"4 Langues Disponibles",
+    faqTitle:"QUESTIONS FRÉQUENTES",
+    fq1:"Comment recevoir mon accès après le paiement?", fa1:"Après confirmation, vous recevez votre code d'accès via WhatsApp en moins d'1 heure.",
+    fq2:"Le bot garantit-il des profits?", fa2:"Le bot fournit des signaux AI basés sur l'analyse technique. Il ne garantit pas 100% de profits.",
+    fq3:"Fonctionne-t-il sur tous les téléphones?", fa3:"Oui — Android et iPhone via Chrome, ainsi que sur ordinateur.",
+    fq4:"Comment renouveler mon abonnement?", fa4:"Effectuez un nouveau paiement et envoyez la capture d'écran. Votre accès sera renouvelé immédiatement.",
+    fq5:"Puis-je utiliser USDT pour payer?", fa5:"Oui! Nous acceptons USDT via TRC20. Contactez-nous via WhatsApp avec le hash de transaction.",
+    footerWarning:"⚠️ Le trading de binary options comporte des risques. N'investissez jamais plus que ce que vous pouvez vous permettre de perdre.",
+    cdH:"HÈ", cdM:"MIN", cdS:"SEG", copyBtn:"📋 COPIER", meruAmountLbl:"MONTANT À ENVOYER"
+  },
+  ht: {
+    navCta:"ABÒNE KOUNYE A", badgeText:"BOT AKTIF — SIYÈN AN TAN REYÈL", heroSub:"QUOTEX AI SIGNAL BOT · BINARY OPTIONS",
+    heroDesc:"Bot AI ki <strong>analize grafik ou</strong> epi ba ou <strong>siyèn pou prochèn bouji</strong> — UP oswa DOWN — ak presizyon elve.",
+    heroCta:"⚡ KÒMANSE KOUNYE A", heroPriceHint:"Abònman: <strong>3,000 HTG/mwa</strong> · NatCash · MerU · TRC20 · Aksè imedya",
+    liveCountText:"traders aktif kounye a", stat1:"Presizyon mwayen", stat2:"Disponib", stat3:"Traders aktif", stat4:"Pou yon siyèn",
+    featTitle:"SA BOT LA FÈ POU OU",
+    f1t:"ANALIZ SCREENSHOT LIVE", f1d:"Voye yon screenshot grafik Quotex ou — AI analize l nan 5 segonn epi ba ou siyèn pou prochèn bouji.",
+    f2t:"SIYÈN UP / DOWN KLÈ", f2d:"Chak siyèn gen direksyon (UP oswa DOWN), poursan konfyans, tan antre, ak ekspiry.",
+    f3t:"KONT REBOU OTOMATIK", f3d:"Apre chak siyèn, kont rebou kòmanse. Alèt sonò a 30s ak 10s pou ou pa rate antre a.",
+    f4t:"ISTORIK & STATISTIK", f4d:"Anrejistre WIN/LOSS ou, wè pousantaj viktwa ou ak evolisyon kapital ou.",
+    f5t:"JESYON KAPITAL", f5d:"Kalkilatris mise otomatik selon kapital ou ak % risk. Opsyon Martingale entegre.",
+    f6t:"ASISTAN AI KREYÒL/FR", f6d:"Chatbot ki pale Kreyòl ak Fransè. Poze nenpòt kesyon sou trading.",
+    f7t:"3 TEMA + SON PÈSONALIZE", f7d:"Chwazi tema ou, ajiste vòlim ak tip son alèt ou.",
+    f8t:"30+ PÈ DEVIZ", f8d:"Forex, Crypto, Matye Premye, Endis — tout pè Quotex disponib.",
+    priceTitle:"ABÒNMAN", promoLabel:"🔥 OFRI ESPESYAL — PRIX REDUI!", promoSub:"Pwofite ofri lansman nou an!",
+    p1name:"1 MWA", p1period:"Pa mwa · Renouvlman chak mwa",
+    p2name:"3 MWA", p2orig:"Olye 9,000 HTG", p2period:"Ekonomize 1,500 HTG · 17% reduksyon", featuredBadge:"⭐ MIYÒ CHwa",
+    p3name:"6 MWA", p3orig:"Olye 18,000 HTG", p3period:"Ekonomize 6,000 HTG · 33% reduksyon",
+    pf1:"Analiz ilimite", pf2:"Siyèn an tan reyèl", pf3:"Asistan AI 24/7", pf4:"Jesyon kapital", pf5:"Aksè mobil & PC",
+    pf6:"Tout plan 1 mwa", pf7:"Sipò priyoritè", pf8:"Mizajou gratis", pf9:"Gwoup WhatsApp VIP", pf10:"Ekonomize 1,500 HTG",
+    pf11:"Tout plan 3 mwa", pf12:"Aksè pou tout tan pou mizajou", pf13:"Coaching trading 1h", pf14:"Ekonomize 6,000 HTG", pf15:"Miyò rapò kalite/pri",
+    btnP1:"CHWAZI PLAN SA A", btnP2:"💳 CHWAZI PLAN SA A", btnP3:"CHWAZI PLAN SA A",
+    payTitle:"💳 KIJAN POU PEYE", paySub:"// CHWAZI METÒD PEMAN OU",
+    natcashDesc:"Voye montan an via NatCash, epi voye yon screenshot reçu pou resevwa aksè ou nan mwens pase 1 è.",
+    natcashS1:"Ouvri aplikasyon <strong>NatCash</strong> ou sou telefòn ou",
+    natcashS2:"Voye montan ou nan nimewo sa a:",
+    natcashS3:"Pran yon <strong>screenshot reçu</strong> epi ranpli fòm anba a",
+    meruDesc:"Eskane QR code MerU anba a pou fè peman ou.",
+    meruS1:"Ouvri aplikasyon <strong>MerU</strong> ou sou telefòn ou",
+    meruS2:"Eskane <strong>QR code</strong> anba a",
+    meruS3:"Pran yon <strong>screenshot</strong> epi voye l via WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Desc:"Voye USDT via rezo TRC20 (Tron). Minimòm: $3 USD.",
+    trc20S1:"Ouvri wallet crypto ou (Binance, Trust Wallet, etc.)",
+    trc20S2:"Chwazi <strong>USDT — Rezo TRC20</strong>",
+    trc20S3:"Voye nan adrès sa a:",
+    trc20S4:"Voye <strong>hash tranzaksyon</strong> via WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Warning:"⚠️ <strong>ENPÒTAN:</strong> Itilize SÈLMAN rezo TRC20. Tout voye sou lòt rezo ap pèdi.",
+    formNameLbl:"NON KONPLÈ OU", formTelLbl:"NIMEWO TELEFÒN OU", formPlanLbl:"PLAN OU CHWAZI", formProofLbl:"SCREENSHOT PRÈV PEMAN",
+    uploadText:"Klike pou chwazi screenshot ou", btnSend:"📤 VOYE KONFIRMASYON PEMAN",
+    testiTitle:"SA KLIYAN YO DI",
+    t1:'"Bot sa a chanje fason mwen trade. Siyèn yo trè bon!"',
+    t2:'"Mwen te skeptik anvan, men apre yon semèn mwen wè diferans lan!"',
+    t3:'"Ekselan sèvis! Bot la mache pafètman sou telefòn mwen."',
+    t4:'"El bot es increíble. Los señales son muy precisos. ¡Lo recomiendo!"',
+    secTitle:"PEMAN AN SEKIRITE & GARANTI",
+    b1:"Peman 100% Sekirize", b2:"Aksè Imedya", b3:"AI Claude Sonnet", b4:"Mobil & PC Konpatib",
+    b5:"Mizajou Gratis", b6:"Sipò WhatsApp 24/7", b7:"Siyèn nan 5 Segonn", b8:"4 Lang Disponib",
+    faqTitle:"KESYON SOUVAN",
+    fq1:"Kijan mwen resevwa aksè apre peman?", fa1:"Apre konfirmasyon, ou resevwa kòd aksè ou via WhatsApp nan mwens pase 1 è.",
+    fq2:"Bot la garanti pwòfi?", fa2:"Bot la ba ou siyèn AI baze sou analiz teknik. Li pa garanti 100% pwòfi.",
+    fq3:"Eske li mache sou tout telefòn?", fa3:"Wi — Android ak iPhone via Chrome, ak sou laptop tou.",
+    fq4:"Kijan pou renouvle abònman mwen?", fa4:"Fè yon nouvo peman epi voye screenshot. Aksè ou ap renouvle imedyatman.",
+    fq5:"Eske mwen ka peye ak USDT?", fa5:"Wi! Nou aksepte USDT via TRC20. Kontakte nou via WhatsApp ak hash tranzaksyon an.",
+    footerWarning:"⚠️ Trading binary options gen risk pèt kapital. Pa janm envesti lajan ou pa ka pèdi.",
+    cdH:"HÈ", cdM:"MIN", cdS:"SEG", copyBtn:"📋 KOPYE", meruAmountLbl:"MONTAN POU VOYE"
+  },
+  en: {
+    navCta:"SUBSCRIBE NOW", badgeText:"BOT ACTIVE — REAL-TIME SIGNALS", heroSub:"QUOTEX AI SIGNAL BOT · BINARY OPTIONS",
+    heroDesc:"AI Bot that <strong>analyzes your charts</strong> and gives you <strong>signals for the next candle</strong> — UP or DOWN — with high accuracy.",
+    heroCta:"⚡ START NOW", heroPriceHint:"Subscription: <strong>3,000 HTG/month</strong> · NatCash · MerU · TRC20 · Immediate Access",
+    liveCountText:"active traders right now", stat1:"Avg. Accuracy", stat2:"Available", stat3:"Active Traders", stat4:"For a signal",
+    featTitle:"WHAT THE BOT DOES FOR YOU",
+    f1t:"LIVE SCREENSHOT ANALYSIS", f1d:"Send a screenshot of your Quotex chart — AI analyzes it in 5 seconds and gives you a signal for the next candle.",
+    f2t:"CLEAR UP / DOWN SIGNALS", f2d:"Each signal shows direction (UP or DOWN), confidence percentage, entry time and expiry.",
+    f3t:"AUTO COUNTDOWN TIMER", f3d:"After each signal, a countdown starts. Sound alerts at 30s and 10s so you never miss an entry.",
+    f4t:"HISTORY & STATISTICS", f4d:"Record your WIN/LOSS, view your win rate and capital evolution.",
+    f5t:"CAPITAL MANAGEMENT", f5d:"Auto stake calculator based on your capital and risk %. Built-in Martingale option.",
+    f6t:"AI ASSISTANT FR/EN", f6d:"Chatbot that speaks French and English. Ask any trading question — instant answer.",
+    f7t:"3 THEMES + CUSTOM SOUND", f7d:"Choose your theme, adjust volume and alert sound type.",
+    f8t:"30+ CURRENCY PAIRS", f8d:"Forex, Crypto, Commodities, Indices — all Quotex pairs available.",
+    priceTitle:"SUBSCRIPTIONS", promoLabel:"🔥 SPECIAL OFFER — REDUCED PRICE!", promoSub:"Take advantage of our launch offer!",
+    p1name:"1 MONTH", p1period:"Per month · Monthly renewal",
+    p2name:"3 MONTHS", p2orig:"Instead of 9,000 HTG", p2period:"Save 1,500 HTG · 17% discount", featuredBadge:"⭐ BEST CHOICE",
+    p3name:"6 MONTHS", p3orig:"Instead of 18,000 HTG", p3period:"Save 6,000 HTG · 33% discount",
+    pf1:"Unlimited analyses", pf2:"Real-time signals", pf3:"AI Assistant 24/7", pf4:"Capital management", pf5:"Mobile & PC access",
+    pf6:"Everything in 1 month", pf7:"Priority support", pf8:"Free updates", pf9:"VIP WhatsApp group", pf10:"Save 1,500 HTG",
+    pf11:"Everything in 3 months", pf12:"Lifetime updates access", pf13:"1h trading coaching", pf14:"Save 6,000 HTG", pf15:"Best value for money",
+    btnP1:"CHOOSE THIS PLAN", btnP2:"💳 CHOOSE THIS PLAN", btnP3:"CHOOSE THIS PLAN",
+    payTitle:"💳 HOW TO PAY", paySub:"// CHOOSE YOUR PAYMENT METHOD",
+    natcashDesc:"Send the amount via NatCash, then send a screenshot of the receipt to receive your access in less than 1 hour.",
+    natcashS1:"Open the <strong>NatCash</strong> app on your phone",
+    natcashS2:"Send your amount to the number below:",
+    natcashS3:"Take a <strong>screenshot of the receipt</strong> and fill in the form below",
+    meruDesc:"Scan the MerU QR code below to make your payment.",
+    meruS1:"Open the <strong>MerU</strong> app on your phone",
+    meruS2:"Scan the <strong>QR code</strong> below",
+    meruS3:"Take a <strong>screenshot</strong> and send it via WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Desc:"Send USDT via TRC20 network (Tron). Minimum: $3 USD.",
+    trc20S1:"Open your crypto wallet (Binance, Trust Wallet, etc.)",
+    trc20S2:"Select <strong>USDT — TRC20 Network</strong>",
+    trc20S3:"Send to this address:",
+    trc20S4:"Send the <strong>transaction hash</strong> via WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Warning:"⚠️ <strong>IMPORTANT:</strong> Use ONLY the TRC20 network. Any funds sent on another network will be lost.",
+    formNameLbl:"YOUR FULL NAME", formTelLbl:"YOUR PHONE NUMBER", formPlanLbl:"CHOSEN PLAN", formProofLbl:"SCREENSHOT OF RECEIPT",
+    uploadText:"Click to choose your screenshot", btnSend:"📤 SEND PAYMENT CONFIRMATION",
+    testiTitle:"WHAT OUR CLIENTS SAY",
+    t1:'"This bot changed how I trade. The signals are very accurate!"',
+    t2:'"I was skeptical at first, but after one week I saw the difference!"',
+    t3:'"Excellent service! The bot works perfectly on my phone."',
+    t4:'"El bot es increíble. Los señales son muy precisos. ¡Lo recomiendo!"',
+    secTitle:"SECURE & GUARANTEED PAYMENT",
+    b1:"100% Secure Payment", b2:"Immediate Access", b3:"AI Claude Sonnet", b4:"Mobile & PC Compatible",
+    b5:"Free Updates", b6:"WhatsApp Support 24/7", b7:"Signals in 5 Seconds", b8:"4 Languages Available",
+    faqTitle:"FREQUENTLY ASKED QUESTIONS",
+    fq1:"How do I receive my access after payment?", fa1:"After confirmation, you receive your access code via WhatsApp in less than 1 hour.",
+    fq2:"Does the bot guarantee profits?", fa2:"The bot provides AI signals based on technical analysis. It does not guarantee 100% profits.",
+    fq3:"Does it work on all phones?", fa3:"Yes — Android and iPhone via Chrome, as well as on computer.",
+    fq4:"How do I renew my subscription?", fa4:"Make a new payment and send the screenshot. Your access will be renewed immediately.",
+    fq5:"Can I pay with USDT?", fa5:"Yes! We accept USDT via TRC20. Contact us via WhatsApp with the transaction hash.",
+    footerWarning:"⚠️ Binary options trading carries risk of capital loss. Never invest more than you can afford to lose.",
+    cdH:"HR", cdM:"MIN", cdS:"SEC", copyBtn:"📋 COPY", meruAmountLbl:"AMOUNT TO SEND"
+  },
+  es: {
+    navCta:"SUSCRIBIRSE AHORA", badgeText:"BOT ACTIVO — SEÑALES EN TIEMPO REAL", heroSub:"QUOTEX AI SIGNAL BOT · BINARY OPTIONS",
+    heroDesc:"Bot de IA que <strong>analiza tus gráficos</strong> y te da <strong>señales para la próxima vela</strong> — UP o DOWN — con alta precisión.",
+    heroCta:"⚡ EMPEZAR AHORA", heroPriceHint:"Suscripción: <strong>3,000 HTG/mes</strong> · NatCash · MerU · TRC20 · Acceso inmediato",
+    liveCountText:"traders activos ahora mismo", stat1:"Precisión prom.", stat2:"Disponible", stat3:"Traders activos", stat4:"Por señal",
+    featTitle:"LO QUE EL BOT HACE POR TI",
+    f1t:"ANÁLISIS SCREENSHOT EN VIVO", f1d:"Envía un screenshot de tu gráfico Quotex — la IA lo analiza en 5 segundos y te da una señal para la próxima vela.",
+    f2t:"SEÑALES UP / DOWN CLARAS", f2d:"Cada señal muestra la dirección (UP o DOWN), porcentaje de confianza, momento de entrada y expiración.",
+    f3t:"CUENTA REGRESIVA AUTO", f3d:"Después de cada señal, una cuenta regresiva comienza. Alertas sonoras a 30s y 10s.",
+    f4t:"HISTORIAL & ESTADÍSTICAS", f4d:"Registra tus WIN/LOSS, consulta tu tasa de victoria y evolución de capital.",
+    f5t:"GESTIÓN DE CAPITAL", f5d:"Calculadora de apuesta automática según tu capital y % de riesgo. Opción Martingala integrada.",
+    f6t:"ASISTENTE AI FR/ES", f6d:"Chatbot que habla Francés y Español. Haz cualquier pregunta sobre trading.",
+    f7t:"3 TEMAS + SONIDO PERSONALIZADO", f7d:"Elige tu tema, ajusta el volumen y tipo de sonido de alerta.",
+    f8t:"30+ PARES DE DIVISAS", f8d:"Forex, Cripto, Materias Primas, Índices — todos los pares de Quotex disponibles.",
+    priceTitle:"SUSCRIPCIONES", promoLabel:"🔥 OFERTA ESPECIAL — ¡PRECIO REDUCIDO!", promoSub:"¡Aprovecha nuestra oferta de lanzamiento!",
+    p1name:"1 MES", p1period:"Por mes · Renovación mensual",
+    p2name:"3 MESES", p2orig:"En lugar de 9,000 HTG", p2period:"Ahorra 1,500 HTG · 17% de descuento", featuredBadge:"⭐ MEJOR ELECCIÓN",
+    p3name:"6 MESES", p3orig:"En lugar de 18,000 HTG", p3period:"Ahorra 6,000 HTG · 33% de descuento",
+    pf1:"Análisis ilimitados", pf2:"Señales en tiempo real", pf3:"Asistente AI 24/7", pf4:"Gestión de capital", pf5:"Acceso móvil & PC",
+    pf6:"Todo del plan 1 mes", pf7:"Soporte prioritario", pf8:"Actualizaciones gratis", pf9:"Grupo WhatsApp VIP", pf10:"Ahorra 1,500 HTG",
+    pf11:"Todo del plan 3 meses", pf12:"Acceso de por vida a actualizaciones", pf13:"Coaching trading 1h", pf14:"Ahorra 6,000 HTG", pf15:"Mejor relación calidad/precio",
+    btnP1:"ELEGIR ESTE PLAN", btnP2:"💳 ELEGIR ESTE PLAN", btnP3:"ELEGIR ESTE PLAN",
+    payTitle:"💳 CÓMO PAGAR", paySub:"// ELIGE TU MÉTODO DE PAGO",
+    natcashDesc:"Envía el monto vía NatCash, luego envía una captura de pantalla del recibo para recibir tu acceso en menos de 1 hora.",
+    natcashS1:"Abre la aplicación <strong>NatCash</strong> en tu teléfono",
+    natcashS2:"Envía tu monto al número a continuación:",
+    natcashS3:"Toma una <strong>captura de pantalla del recibo</strong> y completa el formulario",
+    meruDesc:"Escanea el código QR de MerU a continuación para realizar tu pago.",
+    meruS1:"Abre la aplicación <strong>MerU</strong> en tu teléfono",
+    meruS2:"Escanea el <strong>código QR</strong> a continuación",
+    meruS3:"Toma una <strong>captura de pantalla</strong> y envíala por WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Desc:"Envía USDT por la red TRC20 (Tron). Mínimo: $3 USD.",
+    trc20S1:"Abre tu wallet cripto (Binance, Trust Wallet, etc.)",
+    trc20S2:"Selecciona <strong>USDT — Red TRC20</strong>",
+    trc20S3:"Envía a esta dirección:",
+    trc20S4:"Envía el <strong>hash de transacción</strong> por WhatsApp: <strong style='color:#fff'>3239-9183</strong>",
+    trc20Warning:"⚠️ <strong>IMPORTANTE:</strong> Usa ÚNICAMENTE la red TRC20. Cualquier envío en otra red se perderá.",
+    formNameLbl:"TU NOMBRE COMPLETO", formTelLbl:"TU NÚMERO DE TELÉFONO", formPlanLbl:"PLAN ELEGIDO", formProofLbl:"CAPTURA DE PANTALLA DEL RECIBO",
+    uploadText:"Haz clic para elegir tu captura de pantalla", btnSend:"📤 ENVIAR CONFIRMACIÓN DE PAGO",
+    testiTitle:"LO QUE DICEN NUESTROS CLIENTES",
+    t1:'"Este bot cambió mi forma de hacer trading. ¡Las señales son muy precisas!"',
+    t2:'"Era escéptico al principio, pero después de una semana ¡vi la diferencia!"',
+    t3:'"¡Excelente servicio! El bot funciona perfectamente en mi teléfono."',
+    t4:'"El bot es increíble. Los señales son muy precisos. ¡Lo recomiendo a todos!"',
+    secTitle:"PAGO SEGURO Y GARANTIZADO",
+    b1:"Pago 100% Seguro", b2:"Acceso Inmediato", b3:"AI Claude Sonnet", b4:"Móvil & PC Compatible",
+    b5:"Actualizaciones Gratis", b6:"Soporte WhatsApp 24/7", b7:"Señales en 5 Segundos", b8:"4 Idiomas Disponibles",
+    faqTitle:"PREGUNTAS FRECUENTES",
+    fq1:"¿Cómo recibo mi acceso después del pago?", fa1:"Después de la confirmación, recibes tu código de acceso por WhatsApp en menos de 1 hora.",
+    fq2:"¿El bot garantiza ganancias?", fa2:"El bot proporciona señales AI basadas en análisis técnico. No garantiza 100% de ganancias.",
+    fq3:"¿Funciona en todos los teléfonos?", fa3:"Sí — Android e iPhone vía Chrome, así como en computadora.",
+    fq4:"¿Cómo renuevo mi suscripción?", fa4:"Realiza un nuevo pago y envía la captura de pantalla. Tu acceso se renovará inmediatamente.",
+    fq5:"¿Puedo pagar con USDT?", fa5:"¡Sí! Aceptamos USDT vía TRC20. Contáctanos por WhatsApp con el hash de transacción.",
+    footerWarning:"⚠️ El trading de opciones binarias conlleva riesgos de pérdida de capital. Nunca inviertas más de lo que puedas permitirte perder.",
+    cdH:"HR", cdM:"MIN", cdS:"SEG", copyBtn:"📋 COPIAR", meruAmountLbl:"MONTO A ENVIAR"
+  }
+};
+
+let currentLang = 'fr';
+
+function setLang(lang) {
+  currentLang = lang;
+  const L = LANGS[lang];
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+  document.documentElement.lang = lang;
+
+  const set = (id, val, html=false) => { const el=document.getElementById(id); if(el){ if(html) el.innerHTML=val; else el.textContent=val; } };
+  const setH = (id, val) => set(id, val, true);
+
+  set('nav-cta-text', L.navCta);
+  set('badge-text', L.badgeText);
+  set('hero-sub', L.heroSub);
+  setH('hero-desc', L.heroDesc);
+  set('hero-cta', L.heroCta);
+  setH('hero-price-hint', L.heroPriceHint);
+  set('live-count-text', L.liveCountText);
+  set('stat1', L.stat1); set('stat2', L.stat2); set('stat3', L.stat3); set('stat4', L.stat4);
+  set('feat-title', L.featTitle);
+  set('f1t', L.f1t); set('f1d', L.f1d); set('f2t', L.f2t); set('f2d', L.f2d);
+  set('f3t', L.f3t); set('f3d', L.f3d); set('f4t', L.f4t); set('f4d', L.f4d);
+  set('f5t', L.f5t); set('f5d', L.f5d); set('f6t', L.f6t); set('f6d', L.f6d);
+  set('f7t', L.f7t); set('f7d', L.f7d); set('f8t', L.f8t); set('f8d', L.f8d);
+  set('price-title', L.priceTitle);
+  set('promo-label', L.promoLabel); set('promo-sub', L.promoSub);
+  set('p1name', L.p1name); set('p1period', L.p1period);
+  set('p2name', L.p2name); set('p2orig', L.p2orig); set('p2period', L.p2period); set('featured-badge', L.featuredBadge);
+  set('p3name', L.p3name); set('p3orig', L.p3orig); set('p3period', L.p3period);
+  set('pf1',L.pf1);set('pf2',L.pf2);set('pf3',L.pf3);set('pf4',L.pf4);set('pf5',L.pf5);
+  set('pf6',L.pf6);set('pf7',L.pf7);set('pf8',L.pf8);set('pf9',L.pf9);set('pf10',L.pf10);
+  set('pf11',L.pf11);set('pf12',L.pf12);set('pf13',L.pf13);set('pf14',L.pf14);set('pf15',L.pf15);
+  set('btn-p1', L.btnP1); set('btn-p2', L.btnP2); set('btn-p3', L.btnP3);
+  set('pay-title', L.payTitle); set('pay-sub', L.paySub);
+  set('natcash-desc', L.natcashDesc);
+  setH('natcash-s1', L.natcashS1); setH('natcash-s2', L.natcashS2); setH('natcash-s3', L.natcashS3);
+  set('meru-desc', L.meruDesc);
+  setH('meru-s1', L.meruS1); setH('meru-s2', L.meruS2); setH('meru-s3', L.meruS3);
+  set('trc20-desc', L.trc20Desc);
+  setH('trc20-s1', L.trc20S1); setH('trc20-s2', L.trc20S2); setH('trc20-s3', L.trc20S3); setH('trc20-s4', L.trc20S4);
+  setH('trc20-warning', L.trc20Warning);
+  set('form-name-lbl', L.formNameLbl); set('form-tel-lbl', L.formTelLbl);
+  set('form-plan-lbl', L.formPlanLbl); set('form-proof-lbl', L.formProofLbl);
+  set('upload-text', L.uploadText); set('btn-send', L.btnSend);
+  set('testi-title', L.testiTitle);
+  set('t1', L.t1); set('t2', L.t2); set('t3', L.t3); set('t4', L.t4);
+  set('sec-title', L.secTitle);
+  set('b1',L.b1);set('b2',L.b2);set('b3',L.b3);set('b4',L.b4);
+  set('b5',L.b5);set('b6',L.b6);set('b7',L.b7);set('b8',L.b8);
+  set('faq-title', L.faqTitle);
+  set('fq1',L.fq1);set('fa1',L.fa1);set('fq2',L.fq2);set('fa2',L.fa2);
+  set('fq3',L.fq3);set('fa3',L.fa3);set('fq4',L.fq4);set('fa4',L.fa4);
+  set('fq5',L.fq5);set('fa5',L.fa5);
+  set('footer-warning', L.footerWarning);
+  set('cd-h-lbl', L.cdH); set('cd-m-lbl', L.cdM); set('cd-s-lbl', L.cdS);
+  set('copy-btn', L.copyBtn); set('meru-amount-lbl', L.meruAmountLbl);
+}
+
+// ===== COUNTDOWN =====
+let cdEnd = new Date().getTime() + (47*3600 + 59*60 + 59)*1000;
+function updateCountdown() {
+  const now = new Date().getTime();
+  const dist = cdEnd - now;
+  if (dist <= 0) { cdEnd = new Date().getTime() + 48*3600*1000; return; }
+  const h = Math.floor(dist/(1000*3600));
+  const m = Math.floor((dist%(1000*3600))/(1000*60));
+  const s = Math.floor((dist%60000)/1000);
+  document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+}
+setInterval(updateCountdown, 1000); updateCountdown();
+
+// ===== LIVE COUNTER =====
+let liveCount = 247;
+function updateLiveCount() {
+  liveCount += Math.floor(Math.random()*3) - 1;
+  if(liveCount < 200) liveCount = 200;
+  if(liveCount > 350) liveCount = 350;
+  const el = document.getElementById('live-count');
+  if(el) el.textContent = liveCount;
+}
+setInterval(updateLiveCount, 5000);
+
+// ===== PAYMENT TABS =====
+function showPayTab(tab) {
+  document.querySelectorAll('.pay-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pay-content').forEach(c=>c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('pay-'+tab).classList.add('active');
+}
+
+// ===== FILE UPLOAD =====
+let selectedFile = null;
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById('preview-img');
+    img.src = e.target.result; img.style.display = 'block';
+    const zone = document.getElementById('upload-zone');
+    zone.style.borderColor = 'var(--gold)';
+  };
+  reader.readAsDataURL(file);
+  checkForm();
+}
+function checkForm() {
+  const nom = document.getElementById('field-nom').value.trim();
+  const tel = document.getElementById('field-tel').value.trim();
+  document.getElementById('btn-send').disabled = !(nom && tel && selectedFile);
+}
+document.getElementById('field-nom').addEventListener('input', checkForm);
+document.getElementById('field-tel').addEventListener('input', checkForm);
+
+// DRAG & DROP
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', (e)=>{e.preventDefault();zone.style.borderColor='var(--gold)';});
+zone.addEventListener('dragleave', ()=>zone.style.borderColor='');
+zone.addEventListener('drop', (e)=>{
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('file-input').files = dt.files;
+    handleFile(document.getElementById('file-input'));
+  }
+});
+
+// ===== SEND PAYMENT =====
+async function sendPayment() {
+  const nom = document.getElementById('field-nom').value.trim();
+  const tel = document.getElementById('field-tel').value.trim();
+  const plan = document.getElementById('field-plan').value;
+  const btn = document.getElementById('btn-send');
+  const status = document.getElementById('send-status');
+  if (!nom || !tel || !selectedFile) return;
+  btn.disabled = true; btn.textContent = '⏳...';
+  status.style.display = 'none';
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dateHour = new Date().toLocaleString('fr');
+    const msg = encodeURIComponent(`🔔 NOUVO PEMAN HYPER DIEULYN BOT\n\n👤 Non: ${nom}\n📱 Telefòn: ${tel}\n📦 Plan: ${plan}\n📅 Dat: ${dateHour}\n\nScreenshot peman anexe.`);
+    showStatus('ok', currentLang==='ht' ? '✅ Envoyè! Nou pral kontakte ou nan mwens pase 1 è pou ba ou aksè bot la. Mèsi!' :
+      currentLang==='en' ? '✅ Sent! We will contact you within 1 hour to give you access. Thank you!' :
+      currentLang==='es' ? '✅ Enviado! Te contactaremos en menos de 1 hora para darte acceso. ¡Gracias!' :
+      '✅ Envoyé! Nous vous contacterons dans moins d\'1 heure pour vous donner accès. Merci!');
+    setTimeout(()=>{ window.open(`https://wa.me/50932399183?text=${msg}`, '_blank'); }, 1500);
+    btn.textContent = LANGS[currentLang].btnSend; btn.disabled = false;
+  };
+  reader.readAsDataURL(selectedFile);
+}
+
+function showStatus(type, msg) {
+  const status = document.getElementById('send-status');
+  status.className = type==='ok'?'status-ok':'status-err';
+  status.textContent = msg; status.style.display = 'block';
+  status.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ===== TRC20 COPY =====
+function copyTRC20() {
+  const addr = document.getElementById('trc20-address').textContent.trim();
+  navigator.clipboard.writeText(addr).then(()=>{
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✅ OK!';
+    setTimeout(()=>btn.textContent=LANGS[currentLang].copyBtn, 2000);
+  });
+}
+
+// ===== FAQ =====
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ===== SCROLL ANIMATIONS =====
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; } });
+}, {threshold:0.1});
+document.querySelectorAll('.feat-card,.price-card,.testi-card,.badge-item').forEach(el=>{
+  el.style.opacity='0'; el.style.transform='translateY(20px)'; el.style.transition='opacity .6s ease,transform .6s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
